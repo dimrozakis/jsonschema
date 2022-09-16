@@ -35,6 +35,16 @@ _META_SCHEMAS = _utils.URIDict()
 _VOCABULARIES: list[tuple[str, typing.Any]] = []
 
 
+@contextlib.contextmanager
+def close_gen(gen_func, *args, **kwargs):
+    gen = gen_func(*args, **kwargs)
+    try:
+        yield gen
+    finally:
+        if hasattr(gen, "close"):
+            gen.close()
+
+
 def __getattr__(name):
     if name == "ErrorTree":
         warnings.warn(
