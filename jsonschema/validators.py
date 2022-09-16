@@ -284,19 +284,21 @@ def create(
                     if validator is None:
                         continue
 
-                    errors = validator(self, v, instance, _schema) or ()
-                    for error in errors:
-                        # set details if not already set by the called fn
-                        error._set(
-                            validator=k,
-                            validator_value=v,
-                            instance=instance,
-                            schema=_schema,
-                            type_checker=self.TYPE_CHECKER,
-                        )
-                        if k not in {"if", "$ref"}:
-                            error.schema_path.appendleft(k)
-                        yield error
+                    with close_gen(
+                        validator, self, v, instance, _schema
+                    ) as errors:
+                        for error in errors:
+                            # set details if not already set by the called fn
+                            error._set(
+                                validator=k,
+                                validator_value=v,
+                                instance=instance,
+                                schema=_schema,
+                                type_checker=self.TYPE_CHECKER,
+                            )
+                            if k not in {"if", "$ref"}:
+                                error.schema_path.appendleft(k)
+                            yield error
             finally:
                 if scope:
                     self.resolver.pop_scope()
