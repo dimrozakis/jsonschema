@@ -335,8 +335,9 @@ def create(
                 )
                 self = self.evolve(schema=_schema)
 
-            error = next(self.iter_errors(instance), None)
-            return error is None
+            with close_gen(self.iter_errors, instance) as errors:
+                error = next(errors, None)
+                return error is None
 
     if version is not None:
         safe = version.title().replace(" ", "").replace("-", "")
